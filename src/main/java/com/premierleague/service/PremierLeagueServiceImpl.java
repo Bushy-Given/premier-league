@@ -10,9 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 @Service
@@ -22,11 +22,14 @@ public class PremierLeagueServiceImpl implements PremierLeagueService {
     @SneakyThrows(IOException.class)
     public PremierLeagueTable getPremierLeagueTable(String csvFilePath) {
         List<String> lines = Files.readAllLines(Path.of(csvFilePath));
-        List<Team> teamsDistinct = lines.stream().skip(1L)
+        List<Team> teamsDistinct = lines.stream()
+                .skip(1L)
                 .map(round -> round.split(","))
-                .flatMap(teams -> Stream.of(teams).skip(1L)
-                        .map(teamResults(new Team(), teams[0])))
-                .collect(toSet()).stream().distinct().collect(toList());
+                .flatMap(teams -> Stream.of(teams)
+                        .skip(1L)
+                        .map(teamResults(new Team(), teams[0]))
+                        .collect(toSet()).stream())
+                .collect(Collectors.toList());
 
         return PremierLeagueTable.builder().teams(teamsDistinct).build();
     }
